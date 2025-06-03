@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User{
+  id String @id @default(cuid())
+  clearkUserId String @unique
+  email String @unique
+  name String
+  imageUrl String?
+  articles Articles[]
+  comments Comment[]
+  likes Like[]
+}
+model Articles{
+  id String @id @default(cuid())
+  title String
+  content String
+  category String
+  featuredImage String
+  author User @relation(fields: [authorId], references: [id])
+  authorId String
+  comments Comment[]
+  likes Like[]
+  createAt DateTime @default(now())
+}
+model Comment{
+  id String @id @default(cuid())
+  body String
+  author User @relation(fields: [authorId],references: [id])
+  authorId String
+  article Articles @relation(fields: [articleId],references: [id])
+  articleId String
+  createAt DateTime @default(now())
+}
+model Like{
+  id String @id @default(cuid())
+  user User @relation(fields: [userId],references: [id])
+  userId String
+  article Articles @relation(fields: [articleId],references: [id])
+  articleId String
+  createAt DateTime @default(now())
+  @@unique([userId,articleId]) //ensure user can like only once time 
+}
