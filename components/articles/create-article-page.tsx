@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import type React from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,12 +9,17 @@ import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { PenTool, Upload, FileText, Tag, Sparkles } from "lucide-react";
 import "react-quill-new/dist/quill.snow.css";
+import { createArticle } from "@/actions/create-article";
+import { error } from "console";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const CreateArticlesPage = () => {
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [formState, action, isPending] = useActionState(createArticle, {
+    errors: {},
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -39,7 +44,7 @@ const CreateArticlesPage = () => {
         {/* Main Card */}
         <Card className="bg-white/90 backdrop-blur border-0 shadow-xl">
           <CardContent className="p-8">
-            <form className="space-y-7">
+            <form className="space-y-7" action={action}>
               {/* Title */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -55,6 +60,9 @@ const CreateArticlesPage = () => {
                   placeholder="What's your story about?"
                   className="h-11 border-2 border-gray-200 focus:border-blue-400 rounded-lg"
                 />
+                {formState.errors.title && (
+                  <span className="text-red-600">{formState.errors.title}</span>
+                )}
               </div>
 
               {/* Category */}
@@ -73,6 +81,11 @@ const CreateArticlesPage = () => {
                   <option value="web-development">🌐 Web Development</option>
                   <option value="design">🎨 Design</option>
                 </select>
+                {formState.errors.category && (
+                  <span className="text-red-600">
+                    {formState.errors.category}
+                  </span>
+                )}
               </div>
 
               {/* Featured Image - Centered Upload */}
@@ -130,6 +143,11 @@ const CreateArticlesPage = () => {
                     placeholder="Tell your story..."
                     className="min-h-[320px]"
                   />
+                  {formState.errors.content && (
+                    <span className="text-red-600">
+                      {formState.errors.content}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -144,9 +162,10 @@ const CreateArticlesPage = () => {
                 </Button>
                 <Button
                   type="submit"
+                  disabled={isPending}
                   className="flex-1 h-11 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all"
                 >
-                  Create Article
+                  {isPending ? "Loading..." : "Publish Article!"}
                 </Button>
               </div>
             </form>
